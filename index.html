@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album Cover Finder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f13;
+      color: #e0e0e8;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a24;
+      border-bottom: 1px solid #2a2a38;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    header .subtitle {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .vinyl-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: conic-gradient(#333 0deg, #222 120deg, #333 240deg, #222 360deg);
+      border: 3px solid #555;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .vinyl-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #888;
+    }
+
+    .search-panel {
+      background: #1a1a24;
+      border-bottom: 1px solid #2a2a38;
+      padding: 1.5rem 2rem;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      max-width: 900px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field input {
+      background: #0f0f18;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.55rem 0.85rem;
+      color: #e0e0e8;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus {
+      border-color: #7c6ef7;
+    }
+
+    .field-query { flex: 1; min-width: 240px; }
+    .field-query input { width: 100%; }
+
+    .field-size input { width: 110px; }
+
+    button[type="submit"] {
+      background: #7c6ef7;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.4rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      align-self: flex-end;
+    }
+
+    button[type="submit"]:hover { background: #6a5de8; }
+    button[type="submit"]:active { transform: scale(0.97); }
+    button[type="submit"]:disabled { background: #444; cursor: not-allowed; }
+
+    .main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      min-height: 28px;
+      font-size: 0.88rem;
+      color: #888;
+    }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #333;
+      border-top-color: #7c6ef7;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .badge {
+      background: #2a2a38;
+      border-radius: 20px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.8rem;
+      color: #bbb;
+    }
+
+    .badge.green { background: #1a3028; color: #5ecf9a; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: #1a1a24;
+      border: 1px solid #2a2a38;
+      border-radius: 10px;
+      overflow: hidden;
+      transition: transform 0.15s, border-color 0.15s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #7c6ef7;
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: #111;
+    }
+
+    .card-info {
+      padding: 0.65rem 0.75rem;
+    }
+
+    .card-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #e0e0e8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-artist {
+      font-size: 0.78rem;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .card-dims {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      color: #5ecf9a;
+      background: #1a3028;
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+
+    .placeholder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .placeholder-card {
+      background: #1a1a24;
+      border: 1px solid #2a2a38;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .placeholder-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(110deg, #1a1a24 8%, #242434 18%, #1a1a24 33%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .placeholder-text {
+      padding: 0.65rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .placeholder-line {
+      height: 10px;
+      border-radius: 4px;
+      background: linear-gradient(110deg, #242434 8%, #2e2e48 18%, #242434 33%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      to { background-position: -200% 0; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #555;
+    }
+
+    .empty-state .big-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state p { font-size: 0.95rem; }
+
+    .error-msg {
+      background: #2a1a1a;
+      border: 1px solid #5a2020;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #f08080;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox-inner {
+      max-width: 700px;
+      width: 100%;
+      background: #1a1a24;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+
+    .lightbox-inner img {
+      width: 100%;
+      display: block;
+    }
+
+    .lightbox-meta {
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .lightbox-meta .title { font-weight: 600; }
+    .lightbox-meta .artist { color: #888; font-size: 0.9rem; }
+    .lightbox-close {
+      background: #333;
+      border: none;
+      color: #ccc;
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+
+    .lightbox-close:hover { background: #444; }
+
+    @media (max-width: 600px) {
+      .search-panel, .main { padding: 1rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="vinyl-icon"></div>
+  <div>
+    <h1>Album Cover Finder</h1>
+    <div class="subtitle">MusicBrainz · Cover Art Archive</div>
+  </div>
+</header>
+
+<div class="search-panel">
+  <form class="search-row" id="searchForm">
+    <div class="field field-query">
+      <label for="queryInput">Artist or Album</label>
+      <input type="text" id="queryInput" placeholder="e.g. Radiohead, Abbey Road, Daft Punk…" autocomplete="off" required>
+    </div>
+    <div class="field field-size">
+      <label for="minSizeInput">Min size (px)</label>
+      <input type="number" id="minSizeInput" value="500" min="1" max="99999" step="1">
+    </div>
+    <button type="submit" id="searchBtn">Search</button>
+  </form>
+</div>
+
+<div class="main">
+  <div class="status-bar" id="statusBar"></div>
+  <div id="errorContainer"></div>
+  <div id="results"></div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-inner" id="lightboxInner">
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-meta">
+      <div>
+        <div class="title" id="lightboxTitle"></div>
+        <div class="artist" id="lightboxArtist"></div>
+      </div>
+      <button class="lightbox-close" id="lightboxClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MB_BASE = 'https://musicbrainz.org/ws/2';
+  const CAA_BASE = 'https://coverartarchive.org';
+  const MB_LIMIT = 50;
+  const CONCURRENCY = 4;
+  const MB_DELAY_MS = 1100; // MusicBrainz rate limit: 1 req/sec
+
+  // ---- State ----
+  let searchId = 0; // cancel stale searches
+  let foundCount = 0;
+  let checkedCount = 0;
+  let totalCount = 0;
+
+  // ---- Elements ----
+  const form = document.getElementById('searchForm');
+  const queryInput = document.getElementById('queryInput');
+  const minSizeInput = document.getElementById('minSizeInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const statusBar = document.getElementById('statusBar');
+  const errorContainer = document.getElementById('errorContainer');
+  const resultsEl = document.getElementById('results');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const lightboxArtist = document.getElementById('lightboxArtist');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  // ---- Helpers ----
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+    return res.json();
+  }
+
+  function getImageDimensions(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => reject(new Error('image load failed'));
+      img.src = url;
+    });
+  }
+
+  function artistName(release) {
+    if (!release['artist-credit'] || !release['artist-credit'].length) return 'Unknown Artist';
+    return release['artist-credit'].map(c => (c.name || (c.artist && c.artist.name) || '')).join('');
+  }
+
+  // ---- MusicBrainz search ----
+  async function searchMusicBrainz(query) {
+    const encoded = encodeURIComponent(query);
+    const url = `${MB_BASE}/release?query=${encoded}&fmt=json&limit=${MB_LIMIT}`;
+    const data = await fetchJSON(url);
+    return data.releases || [];
+  }
+
+  // ---- Cover Art Archive ----
+  async function getFrontCoverURL(mbid) {
+    const url = `${CAA_BASE}/release/${mbid}`;
+    const data = await fetchJSON(url);
+    const front = (data.images || []).find(i => i.front);
+    if (!front) return null;
+    // Prefer original image; fall back to largest thumbnail
+    return front.image || (front.thumbnails && (front.thumbnails.original || front.thumbnails['1200'] || front.thumbnails['500'])) || null;
+  }
+
+  // ---- UI ----
+  function setStatus(html, showSpinner = false) {
+    statusBar.innerHTML = showSpinner
+      ? `<div class="spinner"></div> ${html}`
+      : html;
+  }
+
+  function showError(msg) {
+    errorContainer.innerHTML = `<div class="error-msg">${msg}</div>`;
+  }
+
+  function clearError() {
+    errorContainer.innerHTML = '';
+  }
+
+  function appendCard(release, imgUrl, dims) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const title = release.title || 'Unknown Album';
+    const artist = artistName(release);
+    card.innerHTML = `
+      <img src="${imgUrl}" alt="${title}" loading="lazy">
+      <div class="card-info">
+        <div class="card-title" title="${title}">${title}</div>
+        <div class="card-artist" title="${artist}">${artist}</div>
+        <span class="card-dims">${dims.width} × ${dims.height}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => openLightbox(imgUrl, title, artist));
+    // Insert into grid
+    document.getElementById('grid')?.appendChild(card);
+    foundCount++;
+  }
+
+  function showPlaceholders(n) {
+    const grid = document.createElement('div');
+    grid.className = 'placeholder-grid';
+    grid.id = 'placeholderGrid';
+    for (let i = 0; i < n; i++) {
+      grid.innerHTML += `
+        <div class="placeholder-card">
+          <div class="placeholder-img"></div>
+          <div class="placeholder-text">
+            <div class="placeholder-line" style="width:80%"></div>
+            <div class="placeholder-line" style="width:55%"></div>
+          </div>
+        </div>`;
+    }
+    resultsEl.appendChild(grid);
+  }
+
+  function removePlaceholders() {
+    document.getElementById('placeholderGrid')?.remove();
+  }
+
+  function openLightbox(url, title, artist) {
+    lightboxImg.src = url;
+    lightboxTitle.textContent = title;
+    lightboxArtist.textContent = artist;
+    lightbox.classList.add('open');
+  }
+
+  lightboxClose.addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') lightbox.classList.remove('open'); });
+
+  // ---- Main search flow ----
+  async function runSearch(query, minSize, sid) {
+    searchBtn.disabled = true;
+    clearError();
+    resultsEl.innerHTML = '';
+    foundCount = 0;
+    checkedCount = 0;
+    totalCount = 0;
+
+    setStatus('Searching MusicBrainz…', true);
+    showPlaceholders(8);
+
+    let releases;
+    try {
+      releases = await searchMusicBrainz(query);
+    } catch (e) {
+      if (sid !== searchId) return;
+      removePlaceholders();
+      setStatus('');
+      showError(`MusicBrainz search failed: ${e.message}`);
+      searchBtn.disabled = false;
+      return;
+    }
+
+    if (sid !== searchId) return;
+    removePlaceholders();
+
+    if (!releases.length) {
+      setStatus('');
+      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🎵</div><p>No releases found for "<strong>${query}</strong>"</p></div>`;
+      searchBtn.disabled = false;
+      return;
+    }
+
+    totalCount = releases.length;
+    setStatus(`Found <strong>${totalCount}</strong> releases — checking cover art…`, true);
+
+    // Create results grid
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.id = 'grid';
+    resultsEl.appendChild(grid);
+
+    // Process releases with limited concurrency
+    async function processRelease(release) {
+      if (sid !== searchId) return;
+      try {
+        const coverUrl = await getFrontCoverURL(release.id);
+        if (!coverUrl || sid !== searchId) return;
+
+        const dims = await getImageDimensions(coverUrl);
+        if (sid !== searchId) return;
+
+        if (dims.width >= minSize && dims.height >= minSize) {
+          appendCard(release, coverUrl, dims);
+        }
+      } catch (e) {
+        // no cover art or load error — skip silently
+      } finally {
+        if (sid === searchId) {
+          checkedCount++;
+          const pct = Math.round((checkedCount / totalCount) * 100);
+          setStatus(
+            `Checked ${checkedCount}/${totalCount} releases — ` +
+            `<span class="badge green">${foundCount} match${foundCount !== 1 ? 'es' : ''}</span> ≥ ${minSize}px`,
+            checkedCount < totalCount
+          );
+        }
+      }
+      await sleep(MB_DELAY_MS / CONCURRENCY);
+    }
+
+    // Run in batches of CONCURRENCY
+    for (let i = 0; i < releases.length; i += CONCURRENCY) {
+      if (sid !== searchId) return;
+      const batch = releases.slice(i, i + CONCURRENCY);
+      await Promise.all(batch.map(r => processRelease(r)));
+    }
+
+    if (sid !== searchId) return;
+    searchBtn.disabled = false;
+
+    if (foundCount === 0) {
+      grid.remove();
+      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🔍</div><p>No covers ≥ <strong>${minSize}px</strong> found for "<strong>${query}</strong>".<br>Try a lower minimum size.</p></div>`;
+      setStatus(`Checked all ${totalCount} releases — no covers met the ${minSize}px minimum.`);
+    } else {
+      setStatus(`Done — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> ≥ ${minSize}px out of ${totalCount} releases checked.`);
+    }
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const query = queryInput.value.trim();
+    const minSize = Math.max(1, parseInt(minSizeInput.value) || 500);
+    minSizeInput.value = minSize;
+    searchId++;
+    runSearch(query, minSize, searchId);
+  });
+
+  // Focus query on load
+  queryInput.focus();
+</script>
+</body>
+</html>
