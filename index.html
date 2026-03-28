@@ -9,14 +9,14 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0f0f13;
-      color: #e0e0e8;
+      background: #0d0b18;
+      color: #ddd8f0;
       min-height: 100vh;
     }
 
     header {
-      background: #1a1a24;
-      border-bottom: 1px solid #2a2a38;
+      background: linear-gradient(135deg, #16102e 0%, #1e1438 100%);
+      border-bottom: 1px solid #3a2860;
       padding: 1.5rem 2rem;
       display: flex;
       align-items: center;
@@ -26,12 +26,12 @@
     header h1 {
       font-size: 1.3rem;
       font-weight: 600;
-      color: #fff;
+      color: #e8e0ff;
     }
 
     header .subtitle {
       font-size: 0.8rem;
-      color: #888;
+      color: #9880c8;
       margin-top: 2px;
     }
 
@@ -39,8 +39,8 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: conic-gradient(#333 0deg, #222 120deg, #333 240deg, #222 360deg);
-      border: 3px solid #555;
+      background: conic-gradient(#4a2d7a 0deg, #2d1a50 120deg, #5a3890 240deg, #2d1a50 360deg);
+      border: 3px solid #7b5ea7;
       position: relative;
       flex-shrink: 0;
     }
@@ -52,12 +52,12 @@
       transform: translate(-50%, -50%);
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: #888;
+      background: #c0a8e8;
     }
 
     .search-panel {
-      background: #1a1a24;
-      border-bottom: 1px solid #2a2a38;
+      background: linear-gradient(135deg, #16102e 0%, #1a1238 100%);
+      border-bottom: 1px solid #3a2860;
       padding: 1.5rem 2rem;
     }
 
@@ -78,24 +78,24 @@
     .field label {
       font-size: 0.75rem;
       font-weight: 500;
-      color: #aaa;
+      color: #b09ad8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     .field input {
-      background: #0f0f18;
-      border: 1px solid #333;
+      background: #0d0b1e;
+      border: 1px solid #4a3470;
       border-radius: 6px;
       padding: 0.55rem 0.85rem;
-      color: #e0e0e8;
+      color: #ddd8f0;
       font-size: 0.95rem;
       outline: none;
       transition: border-color 0.15s;
     }
 
     .field input:focus {
-      border-color: #7c6ef7;
+      border-color: #a87fff;
     }
 
     .field-query { flex: 1; min-width: 240px; }
@@ -104,7 +104,7 @@
     .field-size input { width: 110px; }
 
     button[type="submit"] {
-      background: #7c6ef7;
+      background: linear-gradient(135deg, #7c4dff, #a855f7);
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -112,13 +112,31 @@
       font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: opacity 0.15s, transform 0.1s;
       align-self: flex-end;
     }
 
-    button[type="submit"]:hover { background: #6a5de8; }
+    button[type="submit"]:hover { opacity: 0.85; }
     button[type="submit"]:active { transform: scale(0.97); }
-    button[type="submit"]:disabled { background: #444; cursor: not-allowed; }
+    button[type="submit"]:disabled { background: #2e2040; color: #6a5888; cursor: not-allowed; }
+
+    #stopBtn {
+      background: transparent;
+      color: #c084fc;
+      border: 1px solid #6b3fa0;
+      border-radius: 6px;
+      padding: 0.6rem 1.1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      align-self: flex-end;
+      display: none;
+    }
+
+    #stopBtn:hover { background: #2a1545; }
+    #stopBtn:active { transform: scale(0.97); }
+    #stopBtn.visible { display: inline-block; }
 
     .main {
       padding: 2rem;
@@ -133,13 +151,13 @@
       margin-bottom: 1.5rem;
       min-height: 28px;
       font-size: 0.88rem;
-      color: #888;
+      color: #9880c8;
     }
 
     .spinner {
       width: 16px; height: 16px;
-      border: 2px solid #333;
-      border-top-color: #7c6ef7;
+      border: 2px solid #3a2860;
+      border-top-color: #a87fff;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       flex-shrink: 0;
@@ -148,14 +166,14 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .badge {
-      background: #2a2a38;
+      background: #241848;
       border-radius: 20px;
       padding: 0.2rem 0.6rem;
       font-size: 0.8rem;
-      color: #bbb;
+      color: #c084fc;
     }
 
-    .badge.green { background: #1a3028; color: #5ecf9a; }
+    .badge.green { background: #1a2840; color: #7dd3fc; }
 
     .grid {
       display: grid;
@@ -164,17 +182,18 @@
     }
 
     .card {
-      background: #1a1a24;
-      border: 1px solid #2a2a38;
+      background: linear-gradient(160deg, #1a1232 0%, #150e2a 100%);
+      border: 1px solid #3a2860;
       border-radius: 10px;
       overflow: hidden;
-      transition: transform 0.15s, border-color 0.15s;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
       cursor: pointer;
     }
 
     .card:hover {
       transform: translateY(-3px);
-      border-color: #7c6ef7;
+      border-color: #a87fff;
+      box-shadow: 0 8px 24px rgba(120, 60, 200, 0.25);
     }
 
     .card img {
@@ -182,7 +201,7 @@
       aspect-ratio: 1;
       object-fit: cover;
       display: block;
-      background: #111;
+      background: #0d0b18;
     }
 
     .card-info {
@@ -192,7 +211,7 @@
     .card-title {
       font-size: 0.88rem;
       font-weight: 600;
-      color: #e0e0e8;
+      color: #e8e0ff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -200,7 +219,7 @@
 
     .card-artist {
       font-size: 0.78rem;
-      color: #888;
+      color: #9880c8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -211,8 +230,8 @@
       display: inline-block;
       margin-top: 6px;
       font-size: 0.72rem;
-      color: #5ecf9a;
-      background: #1a3028;
+      color: #7dd3fc;
+      background: #0e1f38;
       border-radius: 4px;
       padding: 1px 6px;
     }
@@ -224,8 +243,8 @@
     }
 
     .placeholder-card {
-      background: #1a1a24;
-      border: 1px solid #2a2a38;
+      background: #1a1232;
+      border: 1px solid #3a2860;
       border-radius: 10px;
       overflow: hidden;
     }
@@ -233,7 +252,7 @@
     .placeholder-img {
       width: 100%;
       aspect-ratio: 1;
-      background: linear-gradient(110deg, #1a1a24 8%, #242434 18%, #1a1a24 33%);
+      background: linear-gradient(110deg, #1a1232 8%, #261848 18%, #1a1232 33%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -248,7 +267,7 @@
     .placeholder-line {
       height: 10px;
       border-radius: 4px;
-      background: linear-gradient(110deg, #242434 8%, #2e2e48 18%, #242434 33%);
+      background: linear-gradient(110deg, #261848 8%, #341f60 18%, #261848 33%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -260,7 +279,7 @@
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      color: #555;
+      color: #6a508a;
     }
 
     .empty-state .big-icon {
@@ -271,11 +290,11 @@
     .empty-state p { font-size: 0.95rem; }
 
     .error-msg {
-      background: #2a1a1a;
-      border: 1px solid #5a2020;
+      background: #1e1030;
+      border: 1px solid #6b2060;
       border-radius: 8px;
       padding: 0.75rem 1rem;
-      color: #f08080;
+      color: #f0a0d8;
       font-size: 0.88rem;
       margin-bottom: 1rem;
     }
@@ -297,10 +316,10 @@
     .lightbox-inner {
       max-width: 700px;
       width: 100%;
-      background: #1a1a24;
+      background: linear-gradient(160deg, #1a1232 0%, #150e2a 100%);
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid #333;
+      border: 1px solid #5a3890;
     }
 
     .lightbox-inner img {
@@ -317,19 +336,19 @@
       gap: 0.5rem;
     }
 
-    .lightbox-meta .title { font-weight: 600; }
-    .lightbox-meta .artist { color: #888; font-size: 0.9rem; }
+    .lightbox-meta .title { font-weight: 600; color: #e8e0ff; }
+    .lightbox-meta .artist { color: #9880c8; font-size: 0.9rem; }
     .lightbox-close {
-      background: #333;
-      border: none;
-      color: #ccc;
+      background: #2a1545;
+      border: 1px solid #6b3fa0;
+      color: #c084fc;
       border-radius: 6px;
       padding: 0.4rem 0.8rem;
       cursor: pointer;
       font-size: 0.88rem;
     }
 
-    .lightbox-close:hover { background: #444; }
+    .lightbox-close:hover { background: #3a1f5a; }
 
     @media (max-width: 600px) {
       .search-panel, .main { padding: 1rem; }
@@ -358,6 +377,7 @@
       <input type="number" id="minSizeInput" value="500" min="1" max="99999" step="1">
     </div>
     <button type="submit" id="searchBtn">Search</button>
+    <button type="button" id="stopBtn">Stop</button>
   </form>
 </div>
 
@@ -399,6 +419,7 @@
   const queryInput = document.getElementById('queryInput');
   const minSizeInput = document.getElementById('minSizeInput');
   const searchBtn = document.getElementById('searchBtn');
+  const stopBtn = document.getElementById('stopBtn');
   const statusBar = document.getElementById('statusBar');
   const errorContainer = document.getElementById('errorContainer');
   const resultsEl = document.getElementById('results');
@@ -516,8 +537,13 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') lightbox.classList.remove('open'); });
 
   // ---- Main search flow ----
+  function setSearching(active) {
+    searchBtn.disabled = active;
+    stopBtn.classList.toggle('visible', active);
+  }
+
   async function runSearch(query, minSize, sid) {
-    searchBtn.disabled = true;
+    setSearching(true);
     clearError();
     resultsEl.innerHTML = '';
     foundCount = 0;
@@ -535,7 +561,7 @@
       removePlaceholders();
       setStatus('');
       showError(`MusicBrainz search failed: ${e.message}`);
-      searchBtn.disabled = false;
+      setSearching(false);
       return;
     }
 
@@ -545,7 +571,7 @@
     if (!releases.length) {
       setStatus('');
       resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🎵</div><p>No releases found for "<strong>${query}</strong>"</p></div>`;
-      searchBtn.disabled = false;
+      setSearching(false);
       return;
     }
 
@@ -595,7 +621,7 @@
     }
 
     if (sid !== searchId) return;
-    searchBtn.disabled = false;
+    setSearching(false);
 
     if (foundCount === 0) {
       grid.remove();
@@ -613,6 +639,12 @@
     minSizeInput.value = minSize;
     searchId++;
     runSearch(query, minSize, searchId);
+  });
+
+  stopBtn.addEventListener('click', () => {
+    searchId++; // invalidates current search
+    setSearching(false);
+    setStatus(`Stopped — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> found so far.`);
   });
 
   // Focus query on load
