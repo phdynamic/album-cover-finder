@@ -9,14 +9,14 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0d0b18;
-      color: #ddd8f0;
+      background: #ffffff;
+      color: #333;
       min-height: 100vh;
     }
 
     header {
-      background: linear-gradient(135deg, #16102e 0%, #1e1438 100%);
-      border-bottom: 1px solid #3a2860;
+      background: linear-gradient(135deg, #1a3a6c 0%, #2a6cb5 100%);
+      border-bottom: 1px solid #1a3a6c;
       padding: 1.5rem 2rem;
       display: flex;
       align-items: center;
@@ -26,12 +26,12 @@
     header h1 {
       font-size: 1.3rem;
       font-weight: 600;
-      color: #e8e0ff;
+      color: #fff;
     }
 
     header .subtitle {
       font-size: 0.8rem;
-      color: #9880c8;
+      color: #b0d0f0;
       margin-top: 2px;
     }
 
@@ -47,13 +47,13 @@
       align-items: center;
       gap: 0.35rem;
       font-size: 0.8rem;
-      color: #b09ad8;
+      color: #c0daf0;
       cursor: pointer;
       user-select: none;
     }
 
     .source-toggle input[type="checkbox"] {
-      accent-color: #a87fff;
+      accent-color: #4a9eff;
       cursor: pointer;
     }
 
@@ -68,15 +68,15 @@
       padding: 1px 6px;
     }
 
-    .card-source.src-musicbrainz { background: #1a2838; color: #7db8e8; }
-    .card-source.src-deezer { background: #1a2820; color: #7de8a8; }
+    .card-source.src-musicbrainz { background: #e8f0fa; color: #2a6cb5; }
+    .card-source.src-deezer { background: #e8f5ee; color: #2a8c55; }
 
     .vinyl-icon {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: conic-gradient(#4a2d7a 0deg, #2d1a50 120deg, #5a3890 240deg, #2d1a50 360deg);
-      border: 3px solid #7b5ea7;
+      background: conic-gradient(#3a7cc5 0deg, #1a4a8a 120deg, #4a9cf5 240deg, #1a4a8a 360deg);
+      border: 3px solid #8ac0f0;
       position: relative;
       flex-shrink: 0;
     }
@@ -88,12 +88,12 @@
       transform: translate(-50%, -50%);
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: #c0a8e8;
+      background: #d0e8ff;
     }
 
     .search-panel {
-      background: linear-gradient(135deg, #16102e 0%, #1a1238 100%);
-      border-bottom: 1px solid #3a2860;
+      background: linear-gradient(180deg, #2a6cb5 0%, #e8f0fa 100%);
+      border-bottom: 1px solid #c0d8f0;
       padding: 1.5rem 2rem;
     }
 
@@ -114,24 +114,24 @@
     .field label {
       font-size: 0.75rem;
       font-weight: 500;
-      color: #b09ad8;
+      color: #e0eeff;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
     .field input {
-      background: #0d0b1e;
-      border: 1px solid #4a3470;
+      background: #fff;
+      border: 1px solid #b0c8e0;
       border-radius: 6px;
       padding: 0.55rem 0.85rem;
-      color: #ddd8f0;
+      color: #333;
       font-size: 0.95rem;
       outline: none;
       transition: border-color 0.15s;
     }
 
     .field input:focus {
-      border-color: #a87fff;
+      border-color: #4a9eff;
     }
 
     .field-query { flex: 1; min-width: 240px; }
@@ -140,7 +140,7 @@
     .field-size input { width: 110px; }
 
     button[type="submit"] {
-      background: linear-gradient(135deg, #7c4dff, #a855f7);
+      background: linear-gradient(135deg, #1a5aa0, #2a7cd4);
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -154,12 +154,12 @@
 
     button[type="submit"]:hover { opacity: 0.85; }
     button[type="submit"]:active { transform: scale(0.97); }
-    button[type="submit"]:disabled { background: #2e2040; color: #6a5888; cursor: not-allowed; }
+    button[type="submit"]:disabled { background: #c0d0e0; color: #8a9ab0; cursor: not-allowed; }
 
     #stopBtn {
       background: transparent;
-      color: #c084fc;
-      border: 1px solid #6b3fa0;
+      color: #2a6cb5;
+      border: 1px solid #2a6cb5;
       border-radius: 6px;
       padding: 0.6rem 1.1rem;
       font-size: 0.95rem;
@@ -170,7 +170,7 @@
       display: none;
     }
 
-    #stopBtn:hover { background: #2a1545; }
+    #stopBtn:hover { background: rgba(42, 108, 181, 0.1); }
     #stopBtn:active { transform: scale(0.97); }
     #stopBtn.visible { display: inline-block; }
 
@@ -187,13 +187,13 @@
       margin-bottom: 1.5rem;
       min-height: 28px;
       font-size: 0.88rem;
-      color: #9880c8;
+      color: #6a8aaa;
     }
 
     .spinner {
       width: 16px; height: 16px;
-      border: 2px solid #3a2860;
-      border-top-color: #a87fff;
+      border: 2px solid #c0d8f0;
+      border-top-color: #2a6cb5;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       flex-shrink: 0;
@@ -202,14 +202,14 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .badge {
-      background: #241848;
+      background: #e8f0fa;
       border-radius: 20px;
       padding: 0.2rem 0.6rem;
       font-size: 0.8rem;
-      color: #c084fc;
+      color: #2a6cb5;
     }
 
-    .badge.green { background: #1a2840; color: #7dd3fc; }
+    .badge.green { background: #e0f4f8; color: #1a7a8a; }
 
     .grid {
       display: grid;
@@ -218,8 +218,8 @@
     }
 
     .card {
-      background: linear-gradient(160deg, #1a1232 0%, #150e2a 100%);
-      border: 1px solid #3a2860;
+      background: #fff;
+      border: 1px solid #d8e4f0;
       border-radius: 10px;
       overflow: hidden;
       transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
@@ -228,8 +228,8 @@
 
     .card:hover {
       transform: translateY(-3px);
-      border-color: #a87fff;
-      box-shadow: 0 8px 24px rgba(120, 60, 200, 0.25);
+      border-color: #4a9eff;
+      box-shadow: 0 8px 24px rgba(42, 108, 181, 0.15);
     }
 
     .card img {
@@ -237,7 +237,7 @@
       aspect-ratio: 1;
       object-fit: cover;
       display: block;
-      background: #0d0b18;
+      background: #f0f4f8;
     }
 
     .card-info {
@@ -247,7 +247,7 @@
     .card-title {
       font-size: 0.88rem;
       font-weight: 600;
-      color: #e8e0ff;
+      color: #1a2a3a;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -255,7 +255,7 @@
 
     .card-artist {
       font-size: 0.78rem;
-      color: #9880c8;
+      color: #6a8aaa;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -266,8 +266,8 @@
       display: inline-block;
       margin-top: 6px;
       font-size: 0.72rem;
-      color: #7dd3fc;
-      background: #0e1f38;
+      color: #2a7cd4;
+      background: #e8f0fa;
       border-radius: 4px;
       padding: 1px 6px;
     }
@@ -279,8 +279,8 @@
     }
 
     .placeholder-card {
-      background: #1a1232;
-      border: 1px solid #3a2860;
+      background: #fff;
+      border: 1px solid #d8e4f0;
       border-radius: 10px;
       overflow: hidden;
     }
@@ -288,7 +288,7 @@
     .placeholder-img {
       width: 100%;
       aspect-ratio: 1;
-      background: linear-gradient(110deg, #1a1232 8%, #261848 18%, #1a1232 33%);
+      background: linear-gradient(110deg, #f0f4f8 8%, #e0e8f0 18%, #f0f4f8 33%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -303,7 +303,7 @@
     .placeholder-line {
       height: 10px;
       border-radius: 4px;
-      background: linear-gradient(110deg, #261848 8%, #341f60 18%, #261848 33%);
+      background: linear-gradient(110deg, #e0e8f0 8%, #d0d8e8 18%, #e0e8f0 33%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -315,7 +315,7 @@
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      color: #6a508a;
+      color: #8aa0b8;
     }
 
     .empty-state .big-icon {
@@ -326,11 +326,11 @@
     .empty-state p { font-size: 0.95rem; }
 
     .error-msg {
-      background: #1e1030;
-      border: 1px solid #6b2060;
+      background: #fdf0f0;
+      border: 1px solid #e0a0a0;
       border-radius: 8px;
       padding: 0.75rem 1rem;
-      color: #f0a0d8;
+      color: #a03030;
       font-size: 0.88rem;
       margin-bottom: 1rem;
     }
@@ -352,10 +352,10 @@
     .lightbox-inner {
       max-width: 700px;
       width: 100%;
-      background: linear-gradient(160deg, #1a1232 0%, #150e2a 100%);
+      background: #fff;
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid #5a3890;
+      border: 1px solid #c0d0e0;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
@@ -366,7 +366,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid #3a2860;
+      border-bottom: 1px solid #e0e8f0;
       flex-shrink: 0;
     }
 
@@ -377,8 +377,8 @@
 
     .lightbox-tab {
       background: transparent;
-      border: 1px solid #4a3470;
-      color: #9880c8;
+      border: 1px solid #c0d0e0;
+      color: #6a8aaa;
       border-radius: 6px;
       padding: 0.35rem 0.85rem;
       font-size: 0.82rem;
@@ -387,8 +387,8 @@
       transition: all 0.15s;
     }
 
-    .lightbox-tab:hover { background: #2a1545; color: #c084fc; }
-    .lightbox-tab.active { background: #7c4dff; border-color: #7c4dff; color: #fff; }
+    .lightbox-tab:hover { background: #e8f0fa; color: #2a6cb5; }
+    .lightbox-tab.active { background: #2a6cb5; border-color: #2a6cb5; color: #fff; }
 
     .lightbox-actions {
       display: flex;
@@ -396,9 +396,9 @@
     }
 
     .lightbox-btn {
-      background: #2a1545;
-      border: 1px solid #6b3fa0;
-      color: #c084fc;
+      background: #f0f4f8;
+      border: 1px solid #c0d0e0;
+      color: #4a6a8a;
       border-radius: 6px;
       padding: 0.35rem 0.8rem;
       cursor: pointer;
@@ -407,11 +407,11 @@
       transition: background 0.15s;
     }
 
-    .lightbox-btn:hover { background: #3a1f5a; }
+    .lightbox-btn:hover { background: #e0e8f0; }
 
     .lightbox-btn.download {
-      background: linear-gradient(135deg, #7c4dff, #a855f7);
-      border-color: #7c4dff;
+      background: linear-gradient(135deg, #1a5aa0, #2a7cd4);
+      border-color: #1a5aa0;
       color: #fff;
     }
 
@@ -435,8 +435,8 @@
       padding: 1rem 1.25rem;
     }
 
-    .lightbox-cover-meta .title { font-weight: 600; color: #e8e0ff; font-size: 1.05rem; }
-    .lightbox-cover-meta .artist { color: #9880c8; font-size: 0.9rem; margin-top: 2px; }
+    .lightbox-cover-meta .title { font-weight: 600; color: #1a2a3a; font-size: 1.05rem; }
+    .lightbox-cover-meta .artist { color: #6a8aaa; font-size: 0.9rem; margin-top: 2px; }
 
     /* Details view */
     .lightbox-details {
@@ -468,13 +468,13 @@
     .lightbox-details-info .detail-title {
       font-size: 1.15rem;
       font-weight: 700;
-      color: #e8e0ff;
+      color: #1a2a3a;
       margin-bottom: 2px;
     }
 
     .lightbox-details-info .detail-artist {
       font-size: 0.95rem;
-      color: #b09ad8;
+      color: #6a8aaa;
       margin-bottom: 1rem;
     }
 
@@ -484,7 +484,7 @@
     }
 
     .detail-table tr {
-      border-bottom: 1px solid #2a1f48;
+      border-bottom: 1px solid #e8f0f5;
     }
 
     .detail-table tr:last-child { border-bottom: none; }
@@ -496,7 +496,7 @@
     }
 
     .detail-table td:first-child {
-      color: #7a6aa0;
+      color: #8aa0b8;
       font-weight: 600;
       white-space: nowrap;
       padding-right: 1rem;
@@ -504,7 +504,7 @@
     }
 
     .detail-table td:last-child {
-      color: #ddd8f0;
+      color: #333;
     }
 
     @media (max-width: 600px) {
@@ -522,7 +522,7 @@
   <div class="vinyl-icon"></div>
   <div>
     <h1>CoverCrate</h1>
-    <div class="subtitle">MusicBrainz · Cover Art Archive · Deezer</div>
+    <div class="subtitle">album cover search engine</div>
   </div>
 </header>
 
