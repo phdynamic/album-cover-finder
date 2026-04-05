@@ -69,7 +69,6 @@
     }
 
     .card-source.src-musicbrainz { background: #1a2838; color: #7db8e8; }
-    .card-source.src-itunes { background: #2a1838; color: #e87db8; }
     .card-source.src-deezer { background: #1a2820; color: #7de8a8; }
 
     .vinyl-icon {
@@ -326,16 +325,6 @@
 
     .empty-state p { font-size: 0.95rem; }
 
-    .warn-msg {
-      background: #1e1a10;
-      border: 1px solid #605020;
-      border-radius: 8px;
-      padding: 0.55rem 1rem;
-      color: #d8c880;
-      font-size: 0.82rem;
-      margin-bottom: 1rem;
-    }
-
     .error-msg {
       background: #1e1030;
       border: 1px solid #6b2060;
@@ -409,7 +398,7 @@
   <div class="vinyl-icon"></div>
   <div>
     <h1>CoverCrate</h1>
-    <div class="subtitle">MusicBrainz · Cover Art Archive · iTunes · Deezer</div>
+    <div class="subtitle">MusicBrainz · Cover Art Archive · Deezer</div>
   </div>
 </header>
 
@@ -427,7 +416,6 @@
     <button type="button" id="stopBtn">Stop</button>
     <div class="source-toggles" style="width:100%">
       <label class="source-toggle"><input type="checkbox" id="srcMusicBrainz" checked> MusicBrainz</label>
-      <label class="source-toggle"><input type="checkbox" id="srcItunes" checked> iTunes</label>
       <label class="source-toggle"><input type="checkbox" id="srcDeezer" checked> Deezer</label>
     </div>
   </form>
@@ -456,7 +444,6 @@
 <script>
   const MB_BASE = 'https://musicbrainz.org/ws/2';
   const CAA_BASE = 'https://coverartarchive.org';
-  const ITUNES_BASE = 'https://itunes.apple.com';
   const DEEZER_BASE = 'https://api.deezer.com';
   const MB_LIMIT = 50;
   const CONCURRENCY = 4;
@@ -483,7 +470,6 @@
   const lightboxArtist = document.getElementById('lightboxArtist');
   const lightboxClose = document.getElementById('lightboxClose');
   const srcMusicBrainz = document.getElementById('srcMusicBrainz');
-  const srcItunes = document.getElementById('srcItunes');
   const srcDeezer = document.getElementById('srcDeezer');
 
   // ---- Helpers ----
@@ -552,28 +538,6 @@
     });
   }
 
-  // ---- iTunes Search (try fetch first, fall back to JSONP) ----
-  function parseItunesResults(data) {
-    return (data.results || []).map(item => ({
-      title: item.collectionName || 'Unknown Album',
-      artist: item.artistName || 'Unknown Artist',
-      imgUrl: (item.artworkUrl100 || '').replace('100x100bb', '1200x1200bb'),
-      source: 'itunes'
-    })).filter(r => r.imgUrl);
-  }
-
-  async function searchItunes(query) {
-    const encoded = encodeURIComponent(query);
-    const url = `${ITUNES_BASE}/search?term=${encoded}&entity=album&media=music&country=US&limit=50`;
-    // Try plain fetch first (works when CORS is allowed)
-    try {
-      const res = await fetch(url);
-      if (res.ok) return parseItunesResults(await res.json());
-    } catch (e) { /* CORS blocked, try JSONP */ }
-    // Fall back to JSONP (works when Apple serves callback-wrapped response)
-    return parseItunesResults(await fetchJSONP(url));
-  }
-
   // ---- Deezer Search ----
   async function searchDeezer(query) {
     const encoded = encodeURIComponent(query);
@@ -603,7 +567,7 @@
   }
 
   function sourceBadge(source) {
-    const labels = { musicbrainz: 'MusicBrainz', itunes: 'iTunes', deezer: 'Deezer' };
+    const labels = { musicbrainz: 'MusicBrainz', deezer: 'Deezer' };
     return `<span class="card-source src-${source}">${labels[source] || source}</span>`;
   }
 
@@ -681,10 +645,9 @@
     totalCount = 0;
 
     const useMB = srcMusicBrainz.checked;
-    const useItunes = srcItunes.checked;
     const useDeezer = srcDeezer.checked;
 
-    if (!useMB && !useItunes && !useDeezer) {
+    if (!useMB && !useDeezer) {
       showError('Please enable at least one source.');
       setSearching(false);
       return;
@@ -692,7 +655,6 @@
 
     const enabledNames = [];
     if (useMB) enabledNames.push('MusicBrainz');
-    if (useItunes) enabledNames.push('iTunes');
     if (useDeezer) enabledNames.push('Deezer');
     setStatus(`Searching ${enabledNames.join(', ')}…`, true);
     showPlaceholders(8);
@@ -720,14 +682,6 @@
       );
     }
 
-    // --- iTunes source ---
-    if (useItunes) {
-      sourcePromises.push(
-        searchItunes(query)
-          .catch(e => { errors.push(`iTunes: ${e.message}`); return []; })
-      );
-    }
-
     // --- Deezer source ---
     if (useDeezer) {
       sourcePromises.push(
@@ -744,12 +698,7 @@
     const items = allResults.flat();
 
     if (errors.length) {
-      if (items.length) {
-        // Some sources worked — show a subtle warning, not a blocking error
-        errorContainer.innerHTML = `<div class="warn-msg">Some sources unavailable: ${escapeHTML(errors.join(' · '))}</div>`;
-      } else {
-        showError(errors.join(' · '));
-      }
+      showError(errors.join(' · '));
     }
 
     if (!items.length) {
