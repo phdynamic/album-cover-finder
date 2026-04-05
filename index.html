@@ -35,6 +35,43 @@
       margin-top: 2px;
     }
 
+    .source-toggles {
+      display: flex;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .source-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: #b09ad8;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .source-toggle input[type="checkbox"] {
+      accent-color: #a87fff;
+      cursor: pointer;
+    }
+
+    .card-source {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+
+    .card-source.src-musicbrainz { background: #1a2838; color: #7db8e8; }
+    .card-source.src-itunes { background: #2a1838; color: #e87db8; }
+    .card-source.src-deezer { background: #1a2820; color: #7de8a8; }
+
     .vinyl-icon {
       width: 36px;
       height: 36px;
@@ -362,7 +399,7 @@
   <div class="vinyl-icon"></div>
   <div>
     <h1>Album Cover Finder</h1>
-    <div class="subtitle">MusicBrainz · Cover Art Archive</div>
+    <div class="subtitle">MusicBrainz · Cover Art Archive · iTunes · Deezer</div>
   </div>
 </header>
 
@@ -378,6 +415,11 @@
     </div>
     <button type="submit" id="searchBtn">Search</button>
     <button type="button" id="stopBtn">Stop</button>
+    <div class="source-toggles" style="width:100%">
+      <label class="source-toggle"><input type="checkbox" id="srcMusicBrainz" checked> MusicBrainz</label>
+      <label class="source-toggle"><input type="checkbox" id="srcItunes" checked> iTunes</label>
+      <label class="source-toggle"><input type="checkbox" id="srcDeezer" checked> Deezer</label>
+    </div>
   </form>
 </div>
 
@@ -404,12 +446,14 @@
 <script>
   const MB_BASE = 'https://musicbrainz.org/ws/2';
   const CAA_BASE = 'https://coverartarchive.org';
+  const ITUNES_BASE = 'https://itunes.apple.com';
+  const DEEZER_BASE = 'https://api.deezer.com';
   const MB_LIMIT = 50;
   const CONCURRENCY = 4;
   const MB_DELAY_MS = 1100; // MusicBrainz rate limit: 1 req/sec
 
   // ---- State ----
-  let searchId = 0; // cancel stale searches
+  let searchId = 0;
   let foundCount = 0;
   let checkedCount = 0;
   let totalCount = 0;
@@ -428,6 +472,9 @@
   const lightboxTitle = document.getElementById('lightboxTitle');
   const lightboxArtist = document.getElementById('lightboxArtist');
   const lightboxClose = document.getElementById('lightboxClose');
+  const srcMusicBrainz = document.getElementById('srcMusicBrainz');
+  const srcItunes = document.getElementById('srcItunes');
+  const srcDeezer = document.getElementById('srcDeezer');
 
   // ---- Helpers ----
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -438,9 +485,16 @@
     return res.json();
   }
 
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function getImageDimensions(url) {
     return new Promise((resolve, reject) => {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
       img.onerror = () => reject(new Error('image load failed'));
       img.src = url;
@@ -466,8 +520,33 @@
     const data = await fetchJSON(url);
     const front = (data.images || []).find(i => i.front);
     if (!front) return null;
-    // Prefer original image; fall back to largest thumbnail
     return front.image || (front.thumbnails && (front.thumbnails.original || front.thumbnails['1200'] || front.thumbnails['500'])) || null;
+  }
+
+  // ---- iTunes Search ----
+  async function searchItunes(query) {
+    const encoded = encodeURIComponent(query);
+    const url = `${ITUNES_BASE}/search?term=${encoded}&entity=album&media=music&limit=50`;
+    const data = await fetchJSON(url);
+    return (data.results || []).map(item => ({
+      title: item.collectionName || 'Unknown Album',
+      artist: item.artistName || 'Unknown Artist',
+      imgUrl: (item.artworkUrl100 || '').replace('100x100bb', '1200x1200bb'),
+      source: 'itunes'
+    })).filter(r => r.imgUrl);
+  }
+
+  // ---- Deezer Search ----
+  async function searchDeezer(query) {
+    const encoded = encodeURIComponent(query);
+    const url = `${DEEZER_BASE}/search/album?q=${encoded}&limit=50`;
+    const data = await fetchJSON(url);
+    return (data.data || []).map(item => ({
+      title: item.title || 'Unknown Album',
+      artist: (item.artist && item.artist.name) || 'Unknown Artist',
+      imgUrl: (item.cover_xl || item.cover_big || ''),
+      source: 'deezer'
+    })).filter(r => r.imgUrl);
   }
 
   // ---- UI ----
@@ -478,28 +557,33 @@
   }
 
   function showError(msg) {
-    errorContainer.innerHTML = `<div class="error-msg">${msg}</div>`;
+    errorContainer.innerHTML = `<div class="error-msg">${escapeHTML(msg)}</div>`;
   }
 
   function clearError() {
     errorContainer.innerHTML = '';
   }
 
-  function appendCard(release, imgUrl, dims) {
+  function sourceBadge(source) {
+    const labels = { musicbrainz: 'MusicBrainz', itunes: 'iTunes', deezer: 'Deezer' };
+    return `<span class="card-source src-${source}">${labels[source] || source}</span>`;
+  }
+
+  function appendCard(title, artist, imgUrl, dims, source) {
     const card = document.createElement('div');
     card.className = 'card';
-    const title = release.title || 'Unknown Album';
-    const artist = artistName(release);
+    const safeTitle = escapeHTML(title);
+    const safeArtist = escapeHTML(artist);
     card.innerHTML = `
-      <img src="${imgUrl}" alt="${title}" loading="lazy">
+      <img src="${imgUrl}" alt="${safeTitle}" loading="lazy">
       <div class="card-info">
-        <div class="card-title" title="${title}">${title}</div>
-        <div class="card-artist" title="${artist}">${artist}</div>
+        <div class="card-title" title="${safeTitle}">${safeTitle}</div>
+        <div class="card-artist" title="${safeArtist}">${safeArtist}</div>
         <span class="card-dims">${dims.width} × ${dims.height}</span>
+        ${sourceBadge(source)}
       </div>
     `;
     card.addEventListener('click', () => openLightbox(imgUrl, title, artist));
-    // Insert into grid
     document.getElementById('grid')?.appendChild(card);
     foundCount++;
   }
@@ -542,6 +626,14 @@
     stopBtn.classList.toggle('visible', active);
   }
 
+  function updateProgress(minSize, done) {
+    setStatus(
+      `Checked ${checkedCount}/${totalCount} — ` +
+      `<span class="badge green">${foundCount} match${foundCount !== 1 ? 'es' : ''}</span> ≥ ${minSize}px`,
+      !done
+    );
+  }
+
   async function runSearch(query, minSize, sid) {
     setSearching(true);
     clearError();
@@ -550,85 +642,145 @@
     checkedCount = 0;
     totalCount = 0;
 
-    setStatus('Searching MusicBrainz…', true);
+    const useMB = srcMusicBrainz.checked;
+    const useItunes = srcItunes.checked;
+    const useDeezer = srcDeezer.checked;
+
+    if (!useMB && !useItunes && !useDeezer) {
+      showError('Please enable at least one source.');
+      setSearching(false);
+      return;
+    }
+
+    const enabledNames = [];
+    if (useMB) enabledNames.push('MusicBrainz');
+    if (useItunes) enabledNames.push('iTunes');
+    if (useDeezer) enabledNames.push('Deezer');
+    setStatus(`Searching ${enabledNames.join(', ')}…`, true);
     showPlaceholders(8);
 
-    let releases;
-    try {
-      releases = await searchMusicBrainz(query);
-    } catch (e) {
-      if (sid !== searchId) return;
-      removePlaceholders();
-      setStatus('');
-      showError(`MusicBrainz search failed: ${e.message}`);
-      setSearching(false);
-      return;
-    }
-
-    if (sid !== searchId) return;
-    removePlaceholders();
-
-    if (!releases.length) {
-      setStatus('');
-      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🎵</div><p>No releases found for "<strong>${query}</strong>"</p></div>`;
-      setSearching(false);
-      return;
-    }
-
-    totalCount = releases.length;
-    setStatus(`Found <strong>${totalCount}</strong> releases — checking cover art…`, true);
-
-    // Create results grid
+    // Create results grid early
     const grid = document.createElement('div');
     grid.className = 'grid';
     grid.id = 'grid';
+
+    // Collect items from all sources in parallel
+    const errors = [];
+    const sourcePromises = [];
+
+    // --- MusicBrainz source ---
+    if (useMB) {
+      sourcePromises.push(
+        searchMusicBrainz(query)
+          .then(releases => releases.map(r => ({
+            title: r.title || 'Unknown Album',
+            artist: artistName(r),
+            mbid: r.id,
+            source: 'musicbrainz'
+          })))
+          .catch(e => { errors.push(`MusicBrainz: ${e.message}`); return []; })
+      );
+    }
+
+    // --- iTunes source ---
+    if (useItunes) {
+      sourcePromises.push(
+        searchItunes(query)
+          .catch(e => { errors.push(`iTunes: ${e.message}`); return []; })
+      );
+    }
+
+    // --- Deezer source ---
+    if (useDeezer) {
+      sourcePromises.push(
+        searchDeezer(query)
+          .catch(e => { errors.push(`Deezer: ${e.message}`); return []; })
+      );
+    }
+
+    const allResults = await Promise.all(sourcePromises);
+    if (sid !== searchId) return;
+
+    removePlaceholders();
+
+    if (errors.length) {
+      showError(errors.join(' · '));
+    }
+
+    const items = allResults.flat();
+    if (!items.length) {
+      setStatus('');
+      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🎵</div><p>No releases found for "<strong>${escapeHTML(query)}</strong>"</p></div>`;
+      setSearching(false);
+      return;
+    }
+
+    totalCount = items.length;
+    setStatus(`Found <strong>${totalCount}</strong> results — checking cover art…`, true);
     resultsEl.appendChild(grid);
 
-    // Process releases with limited concurrency
-    async function processRelease(release) {
+    // Process a single item: resolve image URL and check dimensions
+    async function processItem(item) {
       if (sid !== searchId) return;
       try {
-        const coverUrl = await getFrontCoverURL(release.id);
-        if (!coverUrl || sid !== searchId) return;
+        let imgUrl = item.imgUrl;
 
-        const dims = await getImageDimensions(coverUrl);
+        // MusicBrainz items need a CAA lookup for the image URL
+        if (item.source === 'musicbrainz') {
+          imgUrl = await getFrontCoverURL(item.mbid);
+          if (!imgUrl || sid !== searchId) return;
+        }
+
+        const dims = await getImageDimensions(imgUrl);
         if (sid !== searchId) return;
 
         if (dims.width >= minSize && dims.height >= minSize) {
-          appendCard(release, coverUrl, dims);
+          appendCard(item.title, item.artist, imgUrl, dims, item.source);
         }
       } catch (e) {
-        // no cover art or load error — skip silently
+        // no cover art or load error — skip
       } finally {
         if (sid === searchId) {
           checkedCount++;
-          const pct = Math.round((checkedCount / totalCount) * 100);
-          setStatus(
-            `Checked ${checkedCount}/${totalCount} releases — ` +
-            `<span class="badge green">${foundCount} match${foundCount !== 1 ? 'es' : ''}</span> ≥ ${minSize}px`,
-            checkedCount < totalCount
-          );
+          updateProgress(minSize, checkedCount >= totalCount);
         }
       }
-      await sleep(MB_DELAY_MS / CONCURRENCY);
     }
 
-    // Run in batches of CONCURRENCY
-    for (let i = 0; i < releases.length; i += CONCURRENCY) {
-      if (sid !== searchId) return;
-      const batch = releases.slice(i, i + CONCURRENCY);
-      await Promise.all(batch.map(r => processRelease(r)));
-    }
+    // Separate MusicBrainz items (need rate-limited batching) from others
+    const mbItems = items.filter(i => i.source === 'musicbrainz');
+    const otherItems = items.filter(i => i.source !== 'musicbrainz');
+
+    // Process non-MusicBrainz items quickly in parallel (no rate limit needed)
+    const otherPromise = (async () => {
+      for (let i = 0; i < otherItems.length; i += 8) {
+        if (sid !== searchId) return;
+        const batch = otherItems.slice(i, i + 8);
+        await Promise.all(batch.map(item => processItem(item)));
+      }
+    })();
+
+    // Process MusicBrainz items with rate-limited concurrency
+    const mbPromise = (async () => {
+      for (let i = 0; i < mbItems.length; i += CONCURRENCY) {
+        if (sid !== searchId) return;
+        const batch = mbItems.slice(i, i + CONCURRENCY);
+        await Promise.all(batch.map(item => processItem(item)));
+        if (i + CONCURRENCY < mbItems.length) await sleep(MB_DELAY_MS);
+      }
+    })();
+
+    await Promise.all([otherPromise, mbPromise]);
 
     if (sid !== searchId) return;
     setSearching(false);
 
     if (foundCount === 0) {
       grid.remove();
-      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🔍</div><p>No covers ≥ <strong>${minSize}px</strong> found for "<strong>${query}</strong>".<br>Try a lower minimum size.</p></div>`;
-      setStatus(`Checked all ${totalCount} releases — no covers met the ${minSize}px minimum.`);
+      resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🔍</div><p>No covers ≥ <strong>${minSize}px</strong> found for "<strong>${escapeHTML(query)}</strong>".<br>Try a lower minimum size.</p></div>`;
+      setStatus(`Checked all ${totalCount} results — no covers met the ${minSize}px minimum.`);
     } else {
-      setStatus(`Done — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> ≥ ${minSize}px out of ${totalCount} releases checked.`);
+      setStatus(`Done — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> ≥ ${minSize}px out of ${totalCount} results checked.`);
     }
   }
 
@@ -642,12 +794,11 @@
   });
 
   stopBtn.addEventListener('click', () => {
-    searchId++; // invalidates current search
+    searchId++;
     setSearching(false);
     setStatus(`Stopped — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> found so far.`);
   });
 
-  // Focus query on load
   queryInput.focus();
 </script>
 </body>
