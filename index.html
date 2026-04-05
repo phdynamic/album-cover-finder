@@ -546,7 +546,7 @@
   async function searchItunes(query) {
     const encoded = encodeURIComponent(query);
     const url = `${ITUNES_BASE}/search?term=${encoded}&entity=album&media=music&limit=50`;
-    const data = await fetchJSONP(url);
+    const data = await fetchJSON(url);
     return (data.results || []).map(item => ({
       title: item.collectionName || 'Unknown Album',
       artist: item.artistName || 'Unknown Artist',
