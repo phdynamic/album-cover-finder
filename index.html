@@ -356,39 +356,149 @@
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid #5a3890;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    .lightbox-inner img {
-      width: 100%;
-      display: block;
-    }
-
-    .lightbox-meta {
-      padding: 1rem 1.25rem;
+    .lightbox-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid #3a2860;
+      flex-shrink: 0;
     }
 
-    .lightbox-meta .title { font-weight: 600; color: #e8e0ff; }
-    .lightbox-meta .artist { color: #9880c8; font-size: 0.9rem; }
+    .lightbox-tabs {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .lightbox-tab {
+      background: transparent;
+      border: 1px solid #4a3470;
+      color: #9880c8;
+      border-radius: 6px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .lightbox-tab:hover { background: #2a1545; color: #c084fc; }
+    .lightbox-tab.active { background: #7c4dff; border-color: #7c4dff; color: #fff; }
+
     .lightbox-close {
       background: #2a1545;
       border: 1px solid #6b3fa0;
       color: #c084fc;
       border-radius: 6px;
-      padding: 0.4rem 0.8rem;
+      padding: 0.35rem 0.8rem;
       cursor: pointer;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
 
     .lightbox-close:hover { background: #3a1f5a; }
 
+    .lightbox-body {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .lightbox-view { display: none; }
+    .lightbox-view.active { display: block; }
+
+    /* Cover view */
+    .lightbox-cover img {
+      width: 100%;
+      display: block;
+    }
+
+    .lightbox-cover-meta {
+      padding: 1rem 1.25rem;
+    }
+
+    .lightbox-cover-meta .title { font-weight: 600; color: #e8e0ff; font-size: 1.05rem; }
+    .lightbox-cover-meta .artist { color: #9880c8; font-size: 0.9rem; margin-top: 2px; }
+
+    /* Details view */
+    .lightbox-details {
+      display: flex;
+      gap: 1.5rem;
+      padding: 1.25rem;
+    }
+
+    .lightbox-details-thumb {
+      width: 180px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      align-self: flex-start;
+    }
+
+    .lightbox-details-thumb img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .lightbox-details-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .lightbox-details-info .detail-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #e8e0ff;
+      margin-bottom: 2px;
+    }
+
+    .lightbox-details-info .detail-artist {
+      font-size: 0.95rem;
+      color: #b09ad8;
+      margin-bottom: 1rem;
+    }
+
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .detail-table tr {
+      border-bottom: 1px solid #2a1f48;
+    }
+
+    .detail-table tr:last-child { border-bottom: none; }
+
+    .detail-table td {
+      padding: 0.45rem 0;
+      font-size: 0.85rem;
+      vertical-align: top;
+    }
+
+    .detail-table td:first-child {
+      color: #7a6aa0;
+      font-weight: 600;
+      white-space: nowrap;
+      padding-right: 1rem;
+      width: 1%;
+    }
+
+    .detail-table td:last-child {
+      color: #ddd8f0;
+    }
+
     @media (max-width: 600px) {
       .search-panel, .main { padding: 1rem; }
       .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+      .lightbox { padding: 0.75rem; }
+      .lightbox-details { flex-direction: column; gap: 1rem; }
+      .lightbox-details-thumb { width: 120px; }
     }
   </style>
 </head>
@@ -430,13 +540,35 @@
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox">
   <div class="lightbox-inner" id="lightboxInner">
-    <img id="lightboxImg" src="" alt="">
-    <div class="lightbox-meta">
-      <div>
-        <div class="title" id="lightboxTitle"></div>
-        <div class="artist" id="lightboxArtist"></div>
+    <div class="lightbox-toolbar">
+      <div class="lightbox-tabs">
+        <button class="lightbox-tab active" data-view="cover">Cover</button>
+        <button class="lightbox-tab" data-view="details">Details</button>
       </div>
       <button class="lightbox-close" id="lightboxClose">Close</button>
+    </div>
+    <div class="lightbox-body">
+      <div class="lightbox-view lightbox-cover active" id="viewCover">
+        <img id="lightboxImg" src="" alt="">
+        <div class="lightbox-cover-meta">
+          <div class="title" id="lightboxTitle"></div>
+          <div class="artist" id="lightboxArtist"></div>
+        </div>
+      </div>
+      <div class="lightbox-view" id="viewDetails">
+        <div class="lightbox-details">
+          <div class="lightbox-details-thumb">
+            <img id="lightboxThumb" src="" alt="">
+          </div>
+          <div class="lightbox-details-info">
+            <div class="detail-title" id="detailTitle"></div>
+            <div class="detail-artist" id="detailArtist"></div>
+            <table class="detail-table">
+              <tbody id="detailTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -466,9 +598,16 @@
   const resultsEl = document.getElementById('results');
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxThumb = document.getElementById('lightboxThumb');
   const lightboxTitle = document.getElementById('lightboxTitle');
   const lightboxArtist = document.getElementById('lightboxArtist');
   const lightboxClose = document.getElementById('lightboxClose');
+  const detailTitle = document.getElementById('detailTitle');
+  const detailArtist = document.getElementById('detailArtist');
+  const detailTableBody = document.getElementById('detailTableBody');
+  const viewCover = document.getElementById('viewCover');
+  const viewDetails = document.getElementById('viewDetails');
+  const lightboxTabs = document.querySelectorAll('.lightbox-tab');
   const srcMusicBrainz = document.getElementById('srcMusicBrainz');
   const srcDeezer = document.getElementById('srcDeezer');
 
@@ -547,7 +686,12 @@
       title: item.title || 'Unknown Album',
       artist: (item.artist && item.artist.name) || 'Unknown Artist',
       imgUrl: (item.cover_xl || item.cover_big || ''),
-      source: 'deezer'
+      source: 'deezer',
+      meta: {
+        tracks: item.nb_tracks || null,
+        type: item.record_type || null,
+        explicit: item.explicit_lyrics || false,
+      }
     })).filter(r => r.imgUrl);
   }
 
@@ -571,21 +715,22 @@
     return `<span class="card-source src-${source}">${labels[source] || source}</span>`;
   }
 
-  function appendCard(title, artist, imgUrl, dims, source) {
+  function appendCard(item, imgUrl, dims) {
     const card = document.createElement('div');
     card.className = 'card';
-    const safeTitle = escapeHTML(title);
-    const safeArtist = escapeHTML(artist);
+    const safeTitle = escapeHTML(item.title);
+    const safeArtist = escapeHTML(item.artist);
     card.innerHTML = `
       <img src="${imgUrl}" alt="${safeTitle}" loading="lazy">
       <div class="card-info">
         <div class="card-title" title="${safeTitle}">${safeTitle}</div>
         <div class="card-artist" title="${safeArtist}">${safeArtist}</div>
         <span class="card-dims">${dims.width} × ${dims.height}</span>
-        ${sourceBadge(source)}
+        ${sourceBadge(item.source)}
       </div>
     `;
-    card.addEventListener('click', () => openLightbox(imgUrl, title, artist));
+    const cardData = { ...item, imgUrl, dims };
+    card.addEventListener('click', () => openLightbox(cardData));
     document.getElementById('grid')?.appendChild(card);
     foundCount++;
   }
@@ -611,12 +756,54 @@
     document.getElementById('placeholderGrid')?.remove();
   }
 
-  function openLightbox(url, title, artist) {
-    lightboxImg.src = url;
-    lightboxTitle.textContent = title;
-    lightboxArtist.textContent = artist;
+  function switchLightboxView(viewName) {
+    lightboxTabs.forEach(t => t.classList.toggle('active', t.dataset.view === viewName));
+    viewCover.classList.toggle('active', viewName === 'cover');
+    viewDetails.classList.toggle('active', viewName === 'details');
+  }
+
+  function buildDetailRows(data) {
+    const rows = [];
+    const meta = data.meta || {};
+    const src = data.source;
+    const sourceLabels = { musicbrainz: 'MusicBrainz', deezer: 'Deezer' };
+
+    if (meta.date) rows.push(['Release Date', escapeHTML(meta.date)]);
+    if (meta.tracks) rows.push(['Tracks', meta.tracks]);
+    if (meta.country) rows.push(['Country', escapeHTML(meta.country)]);
+    if (meta.label) rows.push(['Label', escapeHTML(meta.label)]);
+    if (meta.status) rows.push(['Status', escapeHTML(meta.status)]);
+    if (meta.packaging) rows.push(['Packaging', escapeHTML(meta.packaging)]);
+    if (meta.barcode) rows.push(['Barcode', escapeHTML(meta.barcode)]);
+    if (meta.disambiguation) rows.push(['Note', escapeHTML(meta.disambiguation)]);
+    if (meta.type) rows.push(['Type', escapeHTML(meta.type.charAt(0).toUpperCase() + meta.type.slice(1))]);
+    if (meta.explicit) rows.push(['Explicit', 'Yes']);
+    if (data.dims) rows.push(['Image Size', `${data.dims.width} × ${data.dims.height} px`]);
+    rows.push(['Source', sourceLabels[src] || src]);
+
+    return rows;
+  }
+
+  function openLightbox(data) {
+    lightboxImg.src = data.imgUrl;
+    lightboxThumb.src = data.imgUrl;
+    lightboxTitle.textContent = data.title;
+    lightboxArtist.textContent = data.artist;
+    detailTitle.textContent = data.title;
+    detailArtist.textContent = data.artist;
+
+    const rows = buildDetailRows(data);
+    detailTableBody.innerHTML = rows.map(([k, v]) =>
+      `<tr><td>${k}</td><td>${v}</td></tr>`
+    ).join('');
+
+    switchLightboxView('cover');
     lightbox.classList.add('open');
   }
+
+  lightboxTabs.forEach(tab => {
+    tab.addEventListener('click', () => switchLightboxView(tab.dataset.view));
+  });
 
   lightboxClose.addEventListener('click', () => lightbox.classList.remove('open'));
   lightbox.addEventListener('click', e => { if (e.target === lightbox) lightbox.classList.remove('open'); });
@@ -676,7 +863,17 @@
             title: r.title || 'Unknown Album',
             artist: artistName(r),
             mbid: r.id,
-            source: 'musicbrainz'
+            source: 'musicbrainz',
+            meta: {
+              date: r.date || null,
+              country: r.country || null,
+              status: r.status || null,
+              barcode: r.barcode || null,
+              tracks: r['track-count'] || null,
+              label: (r['label-info'] && r['label-info'][0] && r['label-info'][0].label && r['label-info'][0].label.name) || null,
+              packaging: r.packaging || null,
+              disambiguation: r.disambiguation || null,
+            }
           })))
           .catch(e => { errors.push(`MusicBrainz: ${e.message}`); return []; })
       );
@@ -728,7 +925,7 @@
         if (sid !== searchId) return;
 
         if (dims.width >= minSize && dims.height >= minSize) {
-          appendCard(item.title, item.artist, imgUrl, dims, item.source);
+          appendCard(item, imgUrl, dims);
         }
       } catch (e) {
         // no cover art or load error — skip
