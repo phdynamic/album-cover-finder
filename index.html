@@ -390,7 +390,12 @@
     .lightbox-tab:hover { background: #2a1545; color: #c084fc; }
     .lightbox-tab.active { background: #7c4dff; border-color: #7c4dff; color: #fff; }
 
-    .lightbox-close {
+    .lightbox-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .lightbox-btn {
       background: #2a1545;
       border: 1px solid #6b3fa0;
       color: #c084fc;
@@ -399,9 +404,18 @@
       cursor: pointer;
       font-size: 0.82rem;
       font-weight: 600;
+      transition: background 0.15s;
     }
 
-    .lightbox-close:hover { background: #3a1f5a; }
+    .lightbox-btn:hover { background: #3a1f5a; }
+
+    .lightbox-btn.download {
+      background: linear-gradient(135deg, #7c4dff, #a855f7);
+      border-color: #7c4dff;
+      color: #fff;
+    }
+
+    .lightbox-btn.download:hover { opacity: 0.85; }
 
     .lightbox-body {
       overflow-y: auto;
@@ -545,7 +559,10 @@
         <button class="lightbox-tab active" data-view="cover">Cover</button>
         <button class="lightbox-tab" data-view="details">Details</button>
       </div>
-      <button class="lightbox-close" id="lightboxClose">Close</button>
+      <div class="lightbox-actions">
+        <button class="lightbox-btn download" id="lightboxDownload">Download</button>
+        <button class="lightbox-btn" id="lightboxClose">Close</button>
+      </div>
     </div>
     <div class="lightbox-body">
       <div class="lightbox-view lightbox-cover active" id="viewCover">
@@ -602,6 +619,7 @@
   const lightboxTitle = document.getElementById('lightboxTitle');
   const lightboxArtist = document.getElementById('lightboxArtist');
   const lightboxClose = document.getElementById('lightboxClose');
+  const lightboxDownload = document.getElementById('lightboxDownload');
   const detailTitle = document.getElementById('detailTitle');
   const detailArtist = document.getElementById('detailArtist');
   const detailTableBody = document.getElementById('detailTableBody');
@@ -784,7 +802,10 @@
     return rows;
   }
 
+  let currentLightboxData = null;
+
   function openLightbox(data) {
+    currentLightboxData = data;
     lightboxImg.src = data.imgUrl;
     lightboxThumb.src = data.imgUrl;
     lightboxTitle.textContent = data.title;
@@ -800,6 +821,36 @@
     switchLightboxView('cover');
     lightbox.classList.add('open');
   }
+
+  async function downloadCurrentImage() {
+    if (!currentLightboxData) return;
+    const btn = lightboxDownload;
+    const origText = btn.textContent;
+    btn.textContent = 'Downloading…';
+    btn.disabled = true;
+    try {
+      const res = await fetch(currentLightboxData.imgUrl);
+      const blob = await res.blob();
+      const ext = blob.type.includes('png') ? 'png' : 'jpg';
+      const safeName = (currentLightboxData.artist + ' - ' + currentLightboxData.title)
+        .replace(/[^a-zA-Z0-9 _\-]/g, '').trim() || 'album-cover';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${safeName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      // Fallback: open in new tab if fetch/blob fails (CORS)
+      window.open(currentLightboxData.imgUrl, '_blank');
+    } finally {
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  }
+
+  lightboxDownload.addEventListener('click', downloadCurrentImage);
 
   lightboxTabs.forEach(tab => {
     tab.addEventListener('click', () => switchLightboxView(tab.dataset.view));
