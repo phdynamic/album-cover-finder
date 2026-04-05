@@ -326,6 +326,16 @@
 
     .empty-state p { font-size: 0.95rem; }
 
+    .warn-msg {
+      background: #1e1a10;
+      border: 1px solid #605020;
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      color: #d8c880;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+
     .error-msg {
       background: #1e1030;
       border: 1px solid #6b2060;
@@ -542,17 +552,26 @@
     });
   }
 
-  // ---- iTunes Search (JSONP required for cross-site per Apple docs) ----
-  async function searchItunes(query) {
-    const encoded = encodeURIComponent(query);
-    const url = `${ITUNES_BASE}/search?term=${encoded}&entity=album&media=music&country=US&limit=50`;
-    const data = await fetchJSONP(url);
+  // ---- iTunes Search (try fetch first, fall back to JSONP) ----
+  function parseItunesResults(data) {
     return (data.results || []).map(item => ({
       title: item.collectionName || 'Unknown Album',
       artist: item.artistName || 'Unknown Artist',
       imgUrl: (item.artworkUrl100 || '').replace('100x100bb', '1200x1200bb'),
       source: 'itunes'
     })).filter(r => r.imgUrl);
+  }
+
+  async function searchItunes(query) {
+    const encoded = encodeURIComponent(query);
+    const url = `${ITUNES_BASE}/search?term=${encoded}&entity=album&media=music&country=US&limit=50`;
+    // Try plain fetch first (works when CORS is allowed)
+    try {
+      const res = await fetch(url);
+      if (res.ok) return parseItunesResults(await res.json());
+    } catch (e) { /* CORS blocked, try JSONP */ }
+    // Fall back to JSONP (works when Apple serves callback-wrapped response)
+    return parseItunesResults(await fetchJSONP(url));
   }
 
   // ---- Deezer Search ----
@@ -722,11 +741,17 @@
 
     removePlaceholders();
 
+    const items = allResults.flat();
+
     if (errors.length) {
-      showError(errors.join(' · '));
+      if (items.length) {
+        // Some sources worked — show a subtle warning, not a blocking error
+        errorContainer.innerHTML = `<div class="warn-msg">Some sources unavailable: ${escapeHTML(errors.join(' · '))}</div>`;
+      } else {
+        showError(errors.join(' · '));
+      }
     }
 
-    const items = allResults.flat();
     if (!items.length) {
       setStatus('');
       resultsEl.innerHTML = `<div class="empty-state"><div class="big-icon">🎵</div><p>No releases found for "<strong>${escapeHTML(query)}</strong>"</p></div>`;
