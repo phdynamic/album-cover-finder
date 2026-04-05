@@ -218,17 +218,42 @@
     }
 
     .card {
+      position: relative;
       background: #fff;
       border: 1px solid #d8e4f0;
       border-radius: 10px;
       overflow: hidden;
-      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      transition: transform 0.15s, box-shadow 0.15s;
       cursor: pointer;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(
+        300px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+        rgba(74, 158, 255, 0.5),
+        transparent 60%
+      );
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .grid:hover .card::before {
+      opacity: 1;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 2;
     }
 
     .card:hover {
       transform: translateY(-3px);
-      border-color: #4a9eff;
       box-shadow: 0 8px 24px rgba(42, 108, 181, 0.15);
     }
 
@@ -1038,6 +1063,16 @@
     searchId++;
     setSearching(false);
     setStatus(`Stopped — showing <span class="badge green">${foundCount} cover${foundCount !== 1 ? 's' : ''}</span> found so far.`);
+  });
+
+  // ---- Cursor-tracking border glow ----
+  resultsEl.addEventListener('mousemove', e => {
+    const cards = resultsEl.querySelectorAll('.card');
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+      card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+    }
   });
 
   queryInput.focus();
